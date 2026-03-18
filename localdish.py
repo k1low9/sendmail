@@ -1,5 +1,4 @@
 import os
-import glob
 import time
 import ssl
 import smtplib
@@ -8,6 +7,8 @@ from email.utils import formatdate, make_msgid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+
+from env_utils import load_dotenv
 
 # =========================
 # Gmailで展示会メール送信（画像フォルダ一元管理版）
@@ -21,12 +22,23 @@ from email.mime.application import MIMEApplication
 
 MODE = "PROD"  # "TEST" or "PROD"
 
+BASE_DIR = Path(__file__).resolve().parent
+DOTENV_PATH = load_dotenv(BASE_DIR / ".env")
+
+
+def get_env(name: str, default: str = "", required: bool = False) -> str:
+    value = os.getenv(name, default).strip()
+    if required and not value:
+        raise ValueError(f"環境変数 {name} が未設定です。.env を確認してください: {DOTENV_PATH}")
+    return value
+
+
 # ---- Gmail送信者（From）----
-GMAIL_SENDER = os.getenv("GMAIL_SENDER", "localdishjp@gmail.com")
-GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "bkikytioedxgeymp")
+GMAIL_SENDER = get_env("GMAIL_SENDER", "localdishjp@gmail.com")
+GMAIL_APP_PASSWORD = get_env("GMAIL_APP_PASSWORD", required=True)
 
 # ---- 返信先（Reply-To）----
-REPLY_TO = os.getenv("REPLY_TO", "localdishjp@gmail.com")
+REPLY_TO = get_env("REPLY_TO", GMAIL_SENDER)
 
 SUBJECT = "合同展示会 『Local dish 2nd』開催のご案内　3/3(火)-　4(水)"
 
